@@ -1,0 +1,114 @@
+-- Supression base existante 
+
+DROP TABLE hits;
+DROP TABLE blast;
+DROP TABLE genes;
+DROP TABLE genomes;
+DROP TABLE inter_genome;
+DROP SEQUENCE hits_id_blast_seq;
+
+
+
+-- Creation BDD
+
+CREATE TABLE genomes(
+	regne			VARCHAR(255),
+	embranchement	VARCHAR(255),
+	classe		VARCHAR(255),
+	espece 		VARCHAR(255),
+	souche 		VARCHAR(255),
+	assembly 		VARCHAR(255) PRIMARY KEY,
+	genbank_ftp 	VARCHAR(255)
+);
+
+
+CREATE TABLE genes(
+	id_gene		VARCHAR(255) PRIMARY KEY ,
+	rang_gene		SMALLINT,
+	assembly		VARCHAR(255),
+	longueur		SMALLINT,
+CONSTRAINT FK_genes
+	FOREIGN KEY (assembly) REFERENCES genomes(assembly)
+);
+
+
+CREATE TABLE blast(
+    	id_blast	  	SERIAL,
+	assembly_q      	VARCHAR(255),
+	assembly_s    	VARCHAR(255),
+	UNIQUE (id_blast),
+CONSTRAINT FK1_blast
+	FOREIGN KEY (assembly_q) REFERENCES genomes(assembly) ON UPDATE CASCADE ON DELETE CASCADE ,
+CONSTRAINT FK2_blast
+	FOREIGN KEY (assembly_s) REFERENCES genomes(assembly) ON DELETE NO ACTION ON UPDATE NO ACTION
+);
+
+
+CREATE TABLE hits(
+    	query_id      	VARCHAR(255),
+	subject_id    	VARCHAR(255),
+    	id_blast        	SERIAL,
+	e_value       	DOUBLE PRECISION,
+	id_pourcent   	REAL,
+	start_subject 	SMALLINT,
+	end_subject   	SMALLINT,
+	start_query   	SMALLINT,
+	end_query     	SMALLINT,
+	cover_query   	REAL,
+	cover_subject 	REAL,
+CONSTRAINT FK_hits
+	FOREIGN KEY (id_blast) REFERENCES blast(id_blast) ON UPDATE CASCADE ON DELETE CASCADE,
+CONSTRAINT PK_hits
+	PRIMARY KEY (id_blast, query_id, subject_id)
+);
+
+
+--CREATE TABLE inter_genome(
+--  a VARCHAR(255),
+--  b VARCHAR(255),
+--  c VARCHAR(255),
+--  d VARCHAR(255),
+--  e VARCHAR(255),
+--  f VARCHAR(255),
+--  g VARCHAR(255),
+--  h VARCHAR(255),
+--  i VARCHAR(255),
+--  j TEXT,
+--  k VARCHAR(255),
+--  l VARCHAR(255),
+--  m VARCHAR(255),
+--  n VARCHAR(255),
+--  o VARCHAR(255),
+--  p VARCHAR(255)
+--);
+
+
+
+
+-- COPY  et INSERT DES DONNEES
+-- a: esp, b: tax, c:souche, f:assembly, o:link
+
+
+--\copy inter_genome FROM 'prokaryotes_complete-genomes_modif.csv' DELIMITER ',' CSV HEADER;
+--  INSERTION DES DONNEES POUR LES 3 EXEMPLES DE MOODLE
+\copy genomes FROM 'genomes.csv' DELIMITER ',';
+\copy genes FROM 'genes.csv' DELIMITER ',';
+\copy blast FROM 'blast.csv' DELIMITER ',';
+\copy hits FROM 'hits.csv' DELIMITER ',';
+
+
+-- PREMEIRES COMMANDES DE CONSTRUCTION
+
+--SELECT
+--     REVERSE(PARSENAME(REPLACE(REVERSE(b), ';', '.'), 1)) AS [Regne], 
+--     REVERSE(PARSENAME(REPLACE(REVERSE(b), ';', '.'), 2)) AS [Embranchement], 
+--     REVERSE(PARSENAME(REPLACE(REVERSE(b), ';', '.'), 3)) AS [Classe], 
+--     f as assembly
+--    INTO inter_grp FROM inter_genome;
+
+--INSERT INTO genomes (regne, embranchement, classe, espece, souche, genbank_ftp, assembly)
+--    SELECT g.Regne, g.Embranchement, g.Classe, i.a, i.c, i.o, i.f
+--    FROM inter_genome as i,inter_grp  as g
+--    WHERE i.f = g.assembly;
+
+
